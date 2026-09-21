@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#050d15">
+<title>Girasoles 🌻</title>
+<meta property="og:title" content="Girasoles 🌻">
+<meta property="og:description" content="Toca para ver nacer tu sorpresa">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌻</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --fondo: #050d15;
+    --amarillo: #ffd83a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    height: 100%;
+    background: var(--fondo);
+    color: var(--amarillo);
+    font-family: "Fredoka", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    overflow: hidden;
+  }
+
+  body {
+    background: radial-gradient(ellipse 120% 85% at 50% 0%, #0d1e2f 0%, #060f18 58%, #030709 100%);
+  }
+
+  /* Resplandor de amanecer que sube mientras florecen */
+  #amanecer {
+    position: fixed; inset: 0; z-index: 0; opacity: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse 85% 46% at 50% 82%, rgba(255, 176, 48, .50), rgba(255, 120, 24, .16) 48%, transparent 72%),
+      radial-gradient(ellipse 60% 30% at 50% 100%, rgba(255, 210, 90, .30), transparent 70%);
+  }
+  body.go #amanecer { animation: amanecer 11s ease-in-out 5s forwards; }
+  @keyframes amanecer { to { opacity: 1; } }
+
+  #fx { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 1; display: block; }
+
+  #mensaje {
+    position: fixed; z-index: 3; top: 0; left: 0; right: 0;
+    padding: calc(env(safe-area-inset-top, 0px) + 28px) 24px 0;
+    text-align: center; font-weight: 600;
+    font-size: clamp(21px, 6.2vw, 32px); line-height: 1.35;
+    color: var(--amarillo);
+    text-shadow: 0 0 18px rgba(255, 200, 60, .35), 0 2px 0 rgba(0, 0, 0, .4);
+    max-width: 640px; margin: 0 auto; min-height: 6.2em;
+  }
+  #mensaje .cursor {
+    display: inline-block; width: 2px; height: 1em; margin-left: 3px;
+    background: var(--amarillo); vertical-align: -0.12em;
+    animation: parpadeo .9s steps(1) infinite;
+  }
+  #mensaje.fin .cursor { display: none; }
+  @keyframes parpadeo { 50% { opacity: 0; } }
+
+  #jardin {
+    position: fixed; z-index: 2; left: 50%; bottom: 0;
+    width: 100%; max-width: 560px; height: auto; max-height: 84vh;
+    transform: translateX(-50%); overflow: visible; pointer-events: none;
+  }
+
+  /* Estados iniciales (antes de tocar) */
+  .grow, .aparece, .disco, .petalo, .capullo-verde { transform-origin: 0 0; }
+  .grow    { transform: scale(0); }
+  .petalo  { transform: scale(0); }
+  .disco   { transform: scale(0); opacity: 0; }
+  .cabeza  { transform: scale(0); transform-origin: 0 0; }
+  .tallo   { stroke-dasharray: 1; stroke-dashoffset: 1; }
+  .aparece, .halo, .semilla { opacity: 0; }
+
+  #jardin.go .aparece  { animation: aparecer 1.2s ease forwards; animation-delay: var(--d, 0s); }
+  #jardin.go .semilla  { animation: semilla 2.1s ease-in-out forwards; animation-delay: var(--d, .1s); transform-origin: 0 0; }
+  #jardin.go .tallo    { animation: dibujar var(--sd, 5s) cubic-bezier(.35, .6, .3, 1) forwards; animation-delay: var(--d, 0s); }
+  #jardin.go .grow     { animation: crecer var(--gd, 1.9s) cubic-bezier(.22, .9, .25, 1) forwards; animation-delay: var(--d, 0s); }
+  #jardin.go .cabeza   { animation: cabeza var(--hd, 8s) forwards; animation-delay: var(--d, 0s); }
+  #jardin.go .petalo   { animation: abrir 1.7s cubic-bezier(.25, 1.35, .4, 1) forwards; animation-delay: var(--d, 0s); }
+  #jardin.go .disco    { animation: disco 1.8s cubic-bezier(.25, 1.2, .4, 1) forwards; animation-delay: var(--d, 0s); }
+  #jardin.go .capullo-verde { animation: apagar 1.1s ease forwards; animation-delay: var(--d, 0s); }
+  #jardin.go .halo     { animation: brillo 3.6s ease-in-out infinite alternate; animation-delay: var(--d, 0s); }
+  #jardin.go .mecer    { animation: mecer 6s ease-in-out infinite alternate; animation-delay: var(--s, 0s); }
+  .mecer { transform-origin: 0 0; }
+
+  @keyframes aparecer { to { opacity: 1; } }
+  @keyframes semilla {
+    0%   { opacity: 0; transform: scale(0) rotate(0deg); }
+    14%  { opacity: 1; transform: scale(1) rotate(0deg); }
+    45%  { opacity: 1; transform: scale(1) rotate(-5deg); }
+    60%  { opacity: 1; transform: scale(1) rotate(5deg); }
+    100% { opacity: 0; transform: scale(.55) translateY(5px); }
+  }
+  @keyframes dibujar { to { stroke-dashoffset: 0; } }
+  @keyframes crecer  { to { transform: scale(1); } }
+  @keyframes abrir   { to { transform: scale(1); } }
+  @keyframes disco   { to { transform: scale(1); opacity: 1; } }
+  @keyframes apagar  { to { opacity: 0; } }
+  @keyframes brillo  { from { opacity: .25; } to { opacity: .8; } }
+  @keyframes mecer   { from { transform: rotate(-1.1deg); } to { transform: rotate(1.1deg); } }
+  /* Del capullo pequeño al girasol gigante */
+  @keyframes cabeza {
+    0%   { transform: scale(0);   animation-timing-function: cubic-bezier(.2, .9, .3, 1.2); }
+    16%  { transform: scale(.30); animation-timing-function: ease-in-out; }
+    45%  { transform: scale(.36); animation-timing-function: cubic-bezier(.3, .1, .25, 1); }
+    100% { transform: scale(1); }
+  }
+
+  /* Pantalla inicial */
+  #inicio {
+    position: fixed; inset: 0; z-index: 10;
+    display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(ellipse at 50% 55%, rgba(8, 20, 32, .88), rgba(2, 6, 9, .96));
+    transition: opacity .9s ease, visibility .9s;
+  }
+  #inicio.oculto { opacity: 0; visibility: hidden; }
+  #btnInicio {
+    appearance: none; border: 0; background: none; cursor: pointer;
+    font: inherit; color: var(--amarillo);
+    display: flex; flex-direction: column; align-items: center; gap: 22px; padding: 28px 34px;
+  }
+  #btnInicio .semillita {
+    width: 96px; height: 96px; border-radius: 50%;
+    display: grid; place-items: center; font-size: 44px;
+    background: radial-gradient(circle, rgba(255, 190, 60, .30), rgba(255, 190, 60, 0) 70%);
+    animation: latido 2.2s ease-in-out infinite;
+  }
+  #btnInicio .texto {
+    font-size: clamp(20px, 5.6vw, 26px); font-weight: 600; letter-spacing: .2px;
+    text-shadow: 0 0 16px rgba(255, 190, 60, .4);
+  }
+  #btnInicio:focus-visible { outline: 2px solid var(--amarillo); outline-offset: 6px; border-radius: 18px; }
+  @keyframes latido { 0%, 100% { transform: scale(.94); } 50% { transform: scale(1.08); } }
+
+  #sonido {
+    position: fixed; z-index: 4;
+    right: calc(env(safe-area-inset-right, 0px) + 16px);
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+    width: 46px; height: 46px; border-radius: 50%;
+    border: 1px solid rgba(255, 216, 58, .35);
+    background: rgba(5, 13, 21, .55);
+    color: var(--amarillo); font-size: 20px; cursor: pointer;
+    display: none; place-items: center;
+  }
+  #sonido.visible { display: grid; }
+  #sonido:focus-visible { outline: 2px solid var(--amarillo); outline-offset: 3px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    #jardin.go .grow, #jardin.go .cabeza, #jardin.go .petalo, #jardin.go .disco,
+    #jardin.go .tallo, #jardin.go .aparece, #jardin.go .capullo-verde { animation-duration: .01s; animation-delay: 0s; }
+    #jardin.go .cabeza { animation-name: cabezaFin; }
+    #jardin.go .mecer, #jardin.go .halo, #btnInicio .semillita { animation: none; }
+    #jardin.go .halo { opacity: .5; }
+    body.go #amanecer { animation-duration: .01s; animation-delay: 0s; }
+    @keyframes cabezaFin { from { transform: scale(1); } to { transform: scale(1); } }
+  }
+</style>
+</head>
+
+<body>
+  <div id="amanecer" aria-hidden="true"></div>
+  <canvas id="fx" aria-hidden="true"></canvas>
+
+  <p id="mensaje" aria-live="polite"></p>
+
+  <svg id="jardin" viewBox="-30 0 420 600" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
+    <defs>
+      <linearGradient id="gPetaloF" x1="0" y1="1" x2="0" y2="0">
+        <stop offset="0" stop-color="#ff9a00"/>
+        <stop offset=".5" stop-color="#ffc41a"/>
+        <stop offset="1" stop-color="#ffe45c"/>
+      </linearGradient>
+      <linearGradient id="gPetaloB" x1="0" y1="1" x2="0" y2="0">
+        <stop offset="0" stop-color="#e07000"/>
+        <stop offset=".6" stop-color="#f6a400"/>
+        <stop offset="1" stop-color="#ffc21a"/>
+      </linearGradient>
+      <radialGradient id="gDisco">
+        <stop offset="0" stop-color="#1e0e06"/>
+        <stop offset=".6" stop-color="#3f2410"/>
+        <stop offset=".92" stop-color="#7b4a1a"/>
+        <stop offset="1" stop-color="#a8702a"/>
+      </radialGradient>
+      <radialGradient id="gCapullo" cx=".4" cy=".35" r=".8">
+        <stop offset="0" stop-color="#8fd35a"/>
+        <stop offset="1" stop-color="#2c7a30"/>
+      </radialGradient>
+      <linearGradient id="gHoja" x1="0" y1="1" x2="0" y2="0">
+        <stop offset="0" stop-color="#1d6f2f"/>
+        <stop offset="1" stop-color="#6cc043"/>
+      </linearGradient>
+      <linearGradient id="gSepalo" x1="0" y1="1" x2="0" y2="0">
+        <stop offset="0" stop-color="#1e6a2c"/>
+        <stop offset="1" stop-color="#5eb43a"/>
+      </linearGradient>
+      <linearGradient id="gPasto" x1="0" y1="1" x2="0" y2="0">
+        <stop offset="0" stop-color="#0c3a1c"/>
+        <stop offset="1" stop-color="#3ea34a"/>
+      </linearGradient>
+      <linearGradient id="gTierra" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#5a3a20"/>
+        <stop offset="1" stop-color="#22140a"/>
+      </linearGradient>
+      <radialGradient id="gHalo">
+        <stop offset="0" stop-color="#ffd54a" stop-opacity=".55"/>
+        <stop offset=".5" stop-color="#ffb52a" stop-opacity=".22"/>
+        <stop offset="1" stop-color="#ffb52a" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <g id="capaSuelo"></g>
+    <g id="capaFlores"></g>
+    <g id="capaFrente"></g>
+  </svg>
+
+  <button id="sonido" type="button" aria-label="Silenciar o activar la música">🔊</button>
+
+  <div id="inicio">
+    <button id="btnInicio" type="button">
+      <span class="semillita" aria-hidden="true">🌻</span>
+      <span class="texto">Toca para ver nacer tu sorpresa 🌻</span>
+    </button>
+  </div>
+
+  <!-- Usa el mismo MP3 que la otra página (debe estar en la misma carpeta) -->
+  <audio id="cancion" src="flores.mp3" preload="auto" loop></audio>
+
+<script>
+(function () {
+  "use strict";
+
+  /* =====================================================
+     PERSONALIZA AQUÍ
+     ===================================================== */
+  var NOMBRE_POR_DEFECTO = "";
+  var PLANTILLA_CON_NOMBRE = "🌻 “Hola {nombre}, estos girasoles nacen para recordarte lo mucho que brillas.” ✨";
+  var PLANTILLA_SIN_NOMBRE = "🌻 “Hola, estos girasoles nacen para recordarte lo mucho que brillas.” ✨";
+  var VOLUMEN = 0.85;
+  /* ===================================================== */
+
+  var reducir = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function leerNombre() {
+    var n = "";
+    try { n = new URLSearchParams(location.search).get("nombre") || ""; } catch (e) {}
+    n = n.replace(/[^\p{L}\p{M}' .\-]/gu, "").replace(/\s+/g, " ").trim().slice(0, 30);
+    return n || NOMBRE_POR_DEFECTO;
+  }
+  var nombre = leerNombre();
+  var textoFinal = nombre ? PLANTILLA_CON_NOMBRE.replace("{nombre}", nombre) : PLANTILLA_SIN_NOMBRE;
+  document.title = nombre ? "Para " + nombre + " 🌻" : "Girasoles 🌻";
+
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      var t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  var rand = mulberry32(77);
+  function r(min, max) { return min + rand() * (max - min); }
+  function f(n) { return Math.round(n * 10) / 10; }
+  function bez(a, b, c, d, t) { var m = 1 - t; return m*m*m*a + 3*m*m*t*b + 3*m*t*t*c + t*t*t*d; }
+  function dbez(a, b, c, d, t) { var m = 1 - t; return 3*m*m*(b-a) + 6*m*t*(c-b) + 3*t*t*(d-c); }
+
+  var SUELO = 574;   // altura del suelo en el dibujo
+
+  /* ---------- Formas ---------- */
+  function hojaGirasol(L) {
+    var W = L * .42;
+    return "M0 0 C" + f(-W * .9) + " " + f(-L * .12) + " " + f(-W * 1.05) + " " + f(-L * .62) + " 0 " + f(-L) +
+           " C" + f(W * 1.05) + " " + f(-L * .62) + " " + f(W * .9) + " " + f(-L * .12) + " 0 0Z";
+  }
+  function sepaloPath(L, W) {
+    return "M0 0 C" + f(-W) + " " + f(-L * .3) + " " + f(-W * .7) + " " + f(-L * .8) + " 0 " + f(-L) +
+           " C" + f(W * .7) + " " + f(-L * .8) + " " + f(W) + " " + f(-L * .3) + " 0 0Z";
+  }
+  function pastoPath(x, h, curva) {
+    return "M" + f(x - 4.5) + " " + SUELO + " Q" + f(x + curva * .15) + " " + f(SUELO - h * .6) + " " + f(x + curva) + " " + f(SUELO - h) +
+           " Q" + f(x + curva * .5 + 3) + " " + f(SUELO - h * .5) + " " + f(x + 4.5) + " " + SUELO + "Z";
+  }
+  var PETALO = "M0 -30 C15 -44 17 -86 0 -104 C-17 -86 -15 -44 0 -30Z";
+
+  /* Semillas del centro: patrón de girasol (ángulo áureo) */
+  function semillasCentro(n) {
+    var out = "", ang = 137.508 * Math.PI / 180;
+    for (var i = 1; i <= n; i++) {
+      var rr = 34 * Math.sqrt(i / n), th = i * ang, k = i / n;
+      var R = Math.round(58 + 160 * k * k), G = Math.round(32 + 108 * k * k), B = Math.round(12 + 36 * k * k);
+      out += '<circle cx="' + f(rr * Math.cos(th)) + '" cy="' + f(rr * Math.sin(th)) + '" r="' + f(1.05 + 1.5 * k) +
+             '" fill="rgb(' + R + ',' + G + ',' + B + ')"/>';
+    }
+    return out;
+  }
+
+  /* ---------- La cabeza: capullo → flor abierta → gigante ---------- */
+  function cabeza(sc, delay, hdur, dots) {
+    var bloom = delay + hdur * .45 - .3;      // momento en que se abren los pétalos
+    var s = "";
+
+    s += '<g class="cabeza" style="--d:' + f(delay) + 's;--hd:' + hdur + 's">';
+    s += '<circle class="halo" cx="0" cy="0" r="' + f(160 * sc) + '" fill="url(#gHalo)" style="--d:' + f(bloom + 1.4) + 's"/>';
+    s += '<g transform="scale(' + sc + ')">';
+
+    // sépalos verdes (quedan detrás de la flor)
+    for (var i = 0; i < 14; i++) {
+      s += '<g transform="rotate(' + f(i * (360 / 14) + r(-4, 4)) + ')"><path d="' + sepaloPath(r(62, 72), 13) + '" fill="url(#gSepalo)"/></g>';
+    }
+    // pétalos de atrás
+    var n = 20, k;
+    for (k = 0; k < n; k++) {
+      s += '<g transform="rotate(' + f(k * (360 / n) + 9 + r(-3, 3)) + ') scale(' + f(r(.93, 1)) + ' ' + f(r(.9, 1.03)) + ')">' +
+           '<g class="petalo" style="--d:' + f(bloom + k * .05) + 's">' +
+           '<path d="' + PETALO + '" fill="url(#gPetaloB)"/></g></g>';
+    }
+    // pétalos de adelante
+    for (k = 0; k < n; k++) {
+      s += '<g transform="rotate(' + f(k * (360 / n) + r(-3, 3)) + ') scale(' + f(r(.94, 1.04)) + ' ' + f(r(.92, 1.06)) + ')">' +
+           '<g class="petalo" style="--d:' + f(bloom + .35 + k * .05) + 's">' +
+           '<path d="' + PETALO + '" fill="url(#gPetaloF)"/>' +
+           '<path d="M0 -36 L0 -92" stroke="#c46a00" stroke-opacity=".32" stroke-width="1.2" fill="none"/></g></g>';
+    }
+    // centro con semillas
+    s += '<g class="disco" style="--d:' + f(bloom + 1.0) + 's">' +
+           '<circle r="37" fill="url(#gDisco)"/>' + semillasCentro(dots) +
+           '<circle r="36.5" fill="none" stroke="#b47a2c" stroke-opacity=".5" stroke-width="1.4"/>' +
+         '</g>';
+    // capullo verde (se apaga cuando se abren los pétalos)
+    s += '<g class="capullo-verde" style="--d:' + f(bloom + .1) + 's"><circle r="46" fill="url(#gCapullo)"/></g>';
+
+    s += '</g></g>';
+    return s;
+  }
+
+  /* ---------- Un girasol completo ---------- */
+  function girasol(o) {
+    var H = o.H, dx = o.dx, c1 = o.c1, c2 = o.c2;
+    var p = [[0, 0], [c1, -H * .35], [c2, -H * .7], [dx, -H]];
+    var s = '<g transform="translate(' + o.x + ' ' + SUELO + ')"><g class="mecer" style="--s:' + f(-rand() * 4) + 's">';
+
+    s += '<path class="tallo" pathLength="1" style="--d:' + o.t0 + 's;--sd:' + o.dur + 's" fill="none" stroke="#3f8f3a" stroke-linecap="butt" stroke-width="' + o.w + '" ' +
+         'd="M0 0 C' + c1 + ' ' + f(-H * .35) + ' ' + c2 + ' ' + f(-H * .7) + ' ' + dx + ' ' + (-H) + '"/>';
+
+    for (var i = 0; i < o.hojas.length; i++) {
+      var h = o.hojas[i], t = h.t;
+      var px = bez(p[0][0], p[1][0], p[2][0], p[3][0], t);
+      var py = bez(p[0][1], p[1][1], p[2][1], p[3][1], t);
+      var tx = dbez(p[0][0], p[1][0], p[2][0], p[3][0], t);
+      var ty = dbez(p[0][1], p[1][1], p[2][1], p[3][1], t);
+      var base = Math.atan2(tx, -ty) * 180 / Math.PI;
+      var lados = h.par ? [-1, 1] : [h.side];
+      for (var j = 0; j < lados.length; j++) {
+        var a = base + lados[j] * r(50, 74);
+        var L = h.L * r(.94, 1.06);
+        var d = f(o.t0 + o.dur * Math.pow(t, 1.45));
+        s += '<g transform="translate(' + f(px) + ' ' + f(py) + ') rotate(' + f(a) + ')">' +
+             '<g class="grow" style="--d:' + d + 's">' +
+               '<path d="' + hojaGirasol(L) + '" fill="url(#gHoja)"/>' +
+               '<path d="M0 0 L0 ' + f(-L * .88) + '" stroke="#154d20" stroke-opacity=".55" stroke-width="1.4" fill="none"/>' +
+             '</g></g>';
+      }
+    }
+
+    var ang = Math.atan2(dbez(p[0][0], p[1][0], p[2][0], p[3][0], 1), -dbez(p[0][1], p[1][1], p[2][1], p[3][1], 1)) * 180 / Math.PI;
+    s += '<g transform="translate(' + dx + ' ' + (-H) + ') rotate(' + f(ang * .5 + o.tilt) + ')">' +
+           cabeza(o.sc, o.t0 + o.dur * .92, o.hdur, o.dots) + '</g>';
+    s += '</g></g>';
+    return s;
+  }
+
+  /* ---------- Construcción del jardín ---------- */
+  var suelo = "", flores = "", frente = "", i;
+
+  // Tierra
+  suelo += '<path class="aparece" style="--d:0s" fill="#0a170e" d="M-45 640 L-45 ' + (SUELO + 2) + ' Q70 ' + (SUELO - 10) + ' 180 ' + (SUELO - 6) + ' T405 ' + (SUELO + 2) + ' L405 640Z"/>';
+  suelo += '<g class="aparece" style="--d:0s">' +
+             '<path d="M118 ' + (SUELO + 2) + ' Q150 ' + (SUELO - 17) + ' 180 ' + (SUELO - 18) + ' Q212 ' + (SUELO - 17) + ' 244 ' + (SUELO + 2) + 'Z" fill="url(#gTierra)"/>' +
+             '<path d="M150 ' + (SUELO - 8) + ' Q180 ' + (SUELO - 15) + ' 208 ' + (SUELO - 8) + '" stroke="#8a5c33" stroke-opacity=".5" stroke-width="2" fill="none" stroke-linecap="round"/>' +
+           '</g>';
+
+  // Semilla que se abre
+  suelo += '<g transform="translate(180 ' + (SUELO - 14) + ')"><g class="semilla" style="--d:.15s">' +
+             '<g transform="rotate(24) scale(1.5)"><ellipse rx="6.5" ry="11" fill="#2b1e18"/>' +
+             '<path d="M-2 -9 L-2 9 M2 -9 L2 9" stroke="#efe6d8" stroke-opacity=".8" stroke-width="1.6" stroke-linecap="round"/></g>' +
+           '</g></g>';
+
+  // Girasoles (los más lejanos primero)
+  var defs = [
+    { x:  14, H: 200, dx: -18, c1: -4,  c2: -20, w: 4.4, sc: .44, tilt: -12, dots: 46, t0: 5.4, dur: 3.6, hdur: 6,
+      hojas: [{ t: .32, L: 42, side: 1 }, { t: .55, L: 50, side: -1 }] },
+    { x: 352, H: 215, dx:  20, c1:  4,  c2:  22, w: 4.4, sc: .46, tilt:  12, dots: 46, t0: 6.0, dur: 3.6, hdur: 6,
+      hojas: [{ t: .34, L: 44, side: -1 }, { t: .58, L: 50, side: 1 }] },
+    { x:  84, H: 300, dx: -38, c1: -6,  c2: -34, w: 6.2, sc: .68, tilt: -14, dots: 70, t0: 3.5, dur: 4.4, hdur: 7,
+      hojas: [{ t: .26, L: 64, side: 1 }, { t: .46, L: 76, side: -1 }, { t: .64, L: 62, side: 1 }] },
+    { x: 288, H: 318, dx:  42, c1:  8,  c2:  36, w: 6.2, sc: .72, tilt:  14, dots: 70, t0: 4.1, dur: 4.6, hdur: 7,
+      hojas: [{ t: .24, L: 66, side: -1 }, { t: .44, L: 78, side: 1 }, { t: .62, L: 64, side: -1 }] },
+    { x: 180, H: 405, dx:   4, c1: -16, c2:  16, w: 9.5, sc: 1.0, tilt:  -3, dots: 120, t0: 1.3, dur: 5.2, hdur: 8,
+      hojas: [{ t: .07, L: 30, par: true }, { t: .26, L: 96, side: -1 }, { t: .40, L: 108, side: 1 },
+              { t: .55, L: 98, side: -1 }, { t: .70, L: 78, side: 1 }] }
+  ];
+  for (i = 0; i < defs.length; i++) flores += girasol(defs[i]);
+
+  // Pasto de adelante
+  for (i = 0; i < 26; i++) {
+    var xf = r(-30, 390);
+    frente += '<path class="grow" style="--d:' + f(r(.6, 4.5)) + 's;transform-origin:' + f(xf) + 'px ' + SUELO + 'px" d="' +
+              pastoPath(xf, r(34, 120), r(-16, 16)) + '" fill="url(#gPasto)"/>';
+  }
+
+  document.getElementById("capaSuelo").innerHTML = suelo;
+  document.getElementById("capaFlores").innerHTML = flores;
+  document.getElementById("capaFrente").innerHTML = frente;
+
+  /* ---------- Estrellas y motas doradas (canvas) ---------- */
+  var cv = document.getElementById("fx");
+  var ctx = cv.getContext("2d");
+  var W = 0, H = 0, dpr = 1;
+  var estrellas = [], motas = [];
+  var brillo = document.createElement("canvas");
+  brillo.width = brillo.height = 64;
+  (function () {
+    var g = brillo.getContext("2d");
+    var gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+    gr.addColorStop(0, "rgba(255,236,150,1)");
+    gr.addColorStop(.25, "rgba(255,200,70,.55)");
+    gr.addColorStop(1, "rgba(255,200,70,0)");
+    g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
+  })();
+
+  function preparar() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth; H = window.innerHeight;
+    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    var re = mulberry32(5), k;
+    estrellas = [];
+    for (k = 0; k < 80; k++) {
+      estrellas.push({ x: re() * W, y: re() * H * .65, r: .5 + re() * 1.1, ph: re() * 6.28, sp: .6 + re() * 1.4 });
+    }
+    motas = [];
+    var cant = Math.round(Math.min(40, Math.max(20, W * H / 16000)));
+    for (k = 0; k < cant; k++) {
+      motas.push({
+        x: re() * W, y: H * .3 + re() * H * .7,
+        s: 4 + re() * 8, ph: re() * 6.28, sp: .5 + re() * 1.1,
+        vx: (re() - .5) * 8, vy: -(2 + re() * 7), wob: 8 + re() * 18
+      });
+    }
+  }
+  preparar();
+  window.addEventListener("resize", preparar);
+
+  var t0 = performance.now(), fadeStart = null, last = t0;
+  function dibujar(now) {
+    var dt = Math.min(.05, (now - last) / 1000); last = now;
+    var t = (now - t0) / 1000;
+    ctx.clearRect(0, 0, W, H);
+
+    ctx.fillStyle = "#dbe8f5";
+    for (var k = 0; k < estrellas.length; k++) {
+      var e = estrellas[k];
+      ctx.globalAlpha = .18 + .34 * (.5 + .5 * Math.sin(t * e.sp + e.ph));
+      ctx.beginPath(); ctx.arc(e.x, e.y, e.r, 0, 6.283); ctx.fill();
+    }
+
+    var fade = fadeStart === null ? 0 : Math.max(0, Math.min(1, (now - fadeStart) / 6000));
+    for (k = 0; k < motas.length; k++) {
+      var m = motas[k];
+      if (!reducir) {
+        m.x += (m.vx + Math.sin(t * m.sp + m.ph) * m.wob) * dt;
+        m.y += m.vy * dt;
+        if (m.y < -20) { m.y = H + 10; m.x = Math.random() * W; }
+        if (m.x < -20) m.x = W + 10; else if (m.x > W + 20) m.x = -10;
+      }
+      ctx.globalAlpha = (.22 + .7 * Math.pow(.5 + .5 * Math.sin(t * m.sp * 1.5 + m.ph), 2)) * fade;
+      ctx.drawImage(brillo, m.x - m.s * 2, m.y - m.s * 2, m.s * 4, m.s * 4);
+    }
+    ctx.globalAlpha = 1;
+    requestAnimationFrame(dibujar);
+  }
+  requestAnimationFrame(dibujar);
+
+  /* ---------- Texto que se escribe solo ---------- */
+  var msg = document.getElementById("mensaje");
+  var letras = Array.from(textoFinal);
+  function escribir() {
+    if (reducir) { msg.textContent = textoFinal; msg.classList.add("fin"); return; }
+    var cur = document.createElement("span"); cur.className = "cursor";
+    var nodo = document.createTextNode("");
+    msg.appendChild(nodo); msg.appendChild(cur);
+    var i = 0;
+    (function paso() {
+      if (i >= letras.length) { msg.classList.add("fin"); return; }
+      nodo.nodeValue += letras[i++];
+      setTimeout(paso, /[,.]/.test(letras[i - 1]) ? 260 : 62);
+    })();
+  }
+
+  /* ---------- Música y arranque ---------- */
+  var audio = document.getElementById("cancion");
+  var inicio = document.getElementById("inicio");
+  var btn = document.getElementById("btnInicio");
+  var btnSonido = document.getElementById("sonido");
+  var sonando = false, empezado = false;
+  audio.volume = VOLUMEN;
+
+  function actualizarIcono() { btnSonido.textContent = audio.muted || !sonando ? "🔇" : "🔊"; }
+
+  function comenzar() {
+    if (empezado) return; empezado = true;
+    inicio.classList.add("oculto");
+    document.body.classList.add("go");
+    document.getElementById("jardin").classList.add("go");
+    fadeStart = performance.now() + 4000;
+    setTimeout(escribir, 700);
+
+    var p = audio.play();
+    if (p && p.then) {
+      p.then(function () { sonando = true; actualizarIcono(); })
+       .catch(function () { sonando = false; actualizarIcono(); });
+    }
+    btnSonido.classList.add("visible");
+    actualizarIcono();
+  }
+  btn.addEventListener("click", comenzar);
+
+  btnSonido.addEventListener("click", function () {
+    if (!sonando) {
+      audio.muted = false;
+      audio.play().then(function () { sonando = true; actualizarIcono(); }).catch(function () {});
+    } else {
+      audio.muted = !audio.muted;
+      actualizarIcono();
+    }
+  });
+
+  var estabaSonando = false;
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden) { estabaSonando = sonando && !audio.paused; audio.pause(); }
+    else if (estabaSonando) { audio.play().catch(function () {}); }
+  });
+})();
+</script>
+</body>
+</html>
